@@ -1,6 +1,6 @@
 # CMS con arquitectura en capas de alta disponibilidad
 
-Curso: Aplicaciones Web (https://www.notion.so/Aplicaciones-Web-bacf4f0975864d759394ea200efb0d0b?pvs=21)
+Curso: Aplicaciones Web
 Fecha de entrega: 17 de diciembre de 2024 0:00 (CET)
 Confidencial: Confidencial
 Última Edición: 16 de diciembre de 2024 20:39
