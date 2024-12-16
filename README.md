@@ -11,6 +11,8 @@ En este repositorio se encuentra la documentación técnica en la cual se descri
 
 Esta infraestructura garantiza la alta disponibilidad mediante el balanceo de carga, escalabilidad al permitir añadir mas servidores web en caso de que sea necesario y aislamiento entre capas para mejorar la seguridad. 
 
+El vídeo te lo he enviado por drive mediante un enlace a tu correo.
+
 # Arquitectura de la infraestructura 🏗️
 
 1. Capa pública con un balanceador de carga con Nginx, posee acceso al exterior y acceso a la capa de los servidores web. 
