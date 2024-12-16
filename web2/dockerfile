@@ -1,14 +1,12 @@
-# Usa la imagen base de Debian más reciente
 FROM debian:latest
 
 # Instala dependencias previas y añade el repositorio Sury
 RUN apt-get update && apt-get install -y \
-    lsb-release \  # Herramienta para obtener información de la distribución
-    apt-transport-https \  # Permite el uso de repositorios APT a través de HTTPS
-    ca-certificates \  # Certificados CA para HTTPS
-    gnupg \  # Herramienta para manejar claves GPG
-    wget \  # Herramienta para descargar archivos desde la web
-    mariadb-client  # Cliente de MariaDB
+    lsb-release \
+    apt-transport-https \
+    ca-certificates \
+    gnupg \
+    wget mariadb-client
 
 # Añade la clave GPG del repositorio Sury y lo añade a la lista de fuentes
 RUN wget -qO - https://packages.sury.org/php/apt.gpg | apt-key add - && \
@@ -16,30 +14,29 @@ RUN wget -qO - https://packages.sury.org/php/apt.gpg | apt-key add - && \
 
 # Instala Nginx, PHP 7.4 y dependencias
 RUN apt-get update && apt-get install -y \
-    nginx \  # Servidor web Nginx
-    php7.4 \  # PHP 7.4
-    php7.4-fpm \  # PHP FastCGI Process Manager
-    php7.4-mysql \  # Extensión MySQL para PHP
-    php7.4-zip \  # Extensión ZIP para PHP
-    php7.4-curl \  # Extensión cURL para PHP
-    php7.4-xml \  # Extensión XML para PHP
-    php7.4-intl \  # Extensión Internacionalización para PHP
-    php7.4-mbstring \  # Extensión Multibyte String para PHP
-    php7.4-gd \  # Extensión GD para PHP
-    wget \  # Herramienta para descargar archivos desde la web
-    unzip && \  # Herramienta para descomprimir archivos ZIP
-    rm -rf /var/lib/apt/lists/*  # Limpia la caché de APT
+    nginx \
+    php7.4 \
+    php7.4-fpm \
+    php7.4-mysql \
+    php7.4-zip \
+    php7.4-curl \
+    php7.4-xml \
+    php7.4-intl \
+    php7.4-mbstring \
+    php7.4-gd \
+    wget unzip && \
+    rm -rf /var/lib/apt/lists/*
 
 # Descarga OwnCloud
 RUN wget https://download.owncloud.com/server/stable/owncloud-complete-latest.zip -O /owncloud.zip && \
-    unzip /owncloud.zip -d /var/www/html/ && \  # Descomprime OwnCloud en el directorio web
-    chown -R www-data:www-data /var/www/html/owncloud && \  # Cambia el propietario de los archivos a www-data
-    chmod -R 755 /var/www/html/owncloud  # Cambia los permisos de los archivos
+    unzip /owncloud.zip -d /var/www/html/ && \
+    chown -R www-data:www-data /var/www/html/owncloud && \
+    chmod -R 755 /var/www/html/owncloud
 
 # Copia la configuración de Nginx y el script de instalación
-COPY default /etc/nginx/sites-available/default  # Copia la configuración de Nginx
-COPY setup-owncloud.sh /setup-owncloud.sh  # Copia el script de instalación de OwnCloud
-RUN chmod +x /setup-owncloud.sh  # Hace ejecutable el script de instalación
+COPY default /etc/nginx/sites-available/default
+COPY setup-owncloud.sh /setup-owncloud.sh
+RUN chmod +x /setup-owncloud.sh
 
 # Iniciar servicios y ejecutar el script de OwnCloud
 CMD ["/bin/bash", "-c", "php-fpm7.4 -D && nginx && tail -f /dev/null"]
