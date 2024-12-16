@@ -1,0 +1,43 @@
+FROM debian:bullseye
+
+# Instala dependencias necesarias
+RUN apt-get update && apt-get install -y \
+    lsb-release \
+    apt-transport-https \
+    ca-certificates \
+    gnupg \
+    wget
+
+# Añade el repositorio Sury y su clave GPG
+RUN wget -qO - https://packages.sury.org/php/apt.gpg | apt-key add - && \
+    echo "deb https://packages.sury.org/php/ $(lsb_release -cs) main" > /etc/apt/sources.list.d/sury-php.list
+
+# Instala PHP 7.4 y módulos necesarios
+RUN apt-get update && apt-get install -y \
+    php7.4-fpm \
+    php7.4-mysql \
+    php7.4-zip \
+    php7.4-curl \
+    php7.4-xml \
+    php7.4-intl \
+    php7.4-mbstring \
+    php7.4-gd \
+    wget unzip && \
+    rm -rf /var/lib/apt/lists/*
+
+# Configura PHP-FPM para escuchar en 0.0.0.0:9000
+RUN sed -i 's|listen = /run/php/php7.4-fpm.sock|listen = 0.0.0.0:9000|' /etc/php/7.4/fpm/pool.d/www.conf
+
+# Configura el archivo PID para evitar errores
+RUN mkdir -p /run/php && chown -R www-data:www-data /run/php
+RUN sed -i 's|;pid = run/php/php7.4-fpm.pid|pid = /run/php/php7.4-fpm.pid|' /etc/php/7.4/fpm/php-fpm.conf
+
+# Configura PHP-FPM para usar el usuario correcto
+RUN sed -i 's|user = www-data|user = www-data|' /etc/php/7.4/fpm/pool.d/www.conf && \
+    sed -i 's|group = www-data|group = www-data|' /etc/php/7.4/fpm/pool.d/www.conf
+
+# Expone el puerto 9000
+EXPOSE 9000
+
+# Comando para iniciar PHP-FPM en primer plano
+CMD ["php-fpm7.4", "-F"]

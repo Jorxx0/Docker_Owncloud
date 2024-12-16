@@ -1,0 +1,93 @@
+services:
+  balanceador_web_jorge:
+    build:
+      context: ./balanceador_web  # Ruta del contexto de construcción para el balanceador de carga
+    container_name: balanceador_web_jorge  # Nombre del contenedor
+    ports:
+      - "80:80"  # Mapea el puerto 80 del host al puerto 80 del contenedor
+      - "443:443"  # Mapea el puerto 443 del host al puerto 443 del contenedor
+    volumes:
+      - ./balanceador_web/nginx.conf:/etc/nginx/nginx.conf  # Monta el archivo de configuración de nginx
+      - ./balanceador_web/certs:/etc/nginx/certs  # Monta el directorio de certificados
+    depends_on:
+      - php_fpm_jorge  # Depende del servicio php_fpm_jorge
+    networks:
+      frontend:  # Conectado a la red frontend
+      backend_web:
+        ipv4_address: 172.16.2.10  # Dirección IP fija en la red backend_web
+
+  web1_jorge:
+    build:
+      context: ./web1  # Ruta del contexto de construcción para el primer servidor web
+    container_name: web1_jorge  # Nombre del contenedor
+    volumes:
+      - shared_web:/var/www/html  # Monta el volumen compartido para el contenido web
+    depends_on:
+      - db1_jorge  # Depende del servicio db1_jorge
+      - php_fpm_jorge  # Depende del servicio php_fpm_jorge
+    ports:
+      - "81:80"  # Mapea el puerto 81 del host al puerto 80 del contenedor
+    networks:
+      backend_web:
+        ipv4_address: 172.16.2.11  # Dirección IP fija en la red backend_web
+      backend_db:
+        ipv4_address: 172.16.3.11  # Dirección IP fija en la red backend_db
+
+  web2_jorge:
+    build:
+      context: ./web2  # Ruta del contexto de construcción para el segundo servidor web
+    container_name: web2_jorge  # Nombre del contenedor
+    volumes:
+      - shared_web:/var/www/html  # Monta el volumen compartido para el contenido web
+    depends_on:
+      - db1_jorge  # Depende del servicio db1_jorge
+      - php_fpm_jorge  # Depende del servicio php_fpm_jorge
+    ports:
+      - "82:80"  # Mapea el puerto 82 del host al puerto 80 del contenedor
+    networks:
+      backend_web:
+        ipv4_address: 172.16.2.12  # Dirección IP fija en la red backend_web
+      backend_db:
+        ipv4_address: 172.16.3.12  # Dirección IP fija en la red backend_db
+
+  php_fpm_jorge:
+    build:
+      context: ./php_fpm  # Ruta del contexto de construcción para el servicio PHP-FPM
+    container_name: php_fpm_jorge  # Nombre del contenedor
+    volumes:
+      - shared_web:/var/www/html  # Monta el volumen compartido para el contenido web
+    networks:
+      backend_web:
+        ipv4_address: 172.16.2.13  # Dirección IP fija en la red backend_web
+
+  db1_jorge:
+    image: mariadb:latest  # Imagen de MariaDB
+    container_name: db1_jorge  # Nombre del contenedor
+    volumes:
+      - shared_db:/var/lib/mysql  # Monta el volumen compartido para los datos de la base de datos
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass  # Contraseña del usuario root de MySQL
+      MYSQL_DATABASE: owncloud  # Nombre de la base de datos
+      MYSQL_USER: owncloud  # Usuario de la base de datos
+      MYSQL_PASSWORD: owncloudpass  # Contraseña del usuario de la base de datos
+    networks:
+      backend_db:
+        ipv4_address: 172.16.3.10  # Dirección IP fija en la red backend_db
+
+networks:
+  frontend:
+    driver: bridge  # Red frontend con driver bridge
+  backend_web:
+    driver: bridge  # Red backend_web con driver bridge
+    ipam:
+      config:
+        - subnet: 172.16.2.0/24  # Subred para la red backend_web
+  backend_db:
+    driver: bridge  # Red backend_db con driver bridge
+    ipam:
+      config:
+        - subnet: 172.16.3.0/24  # Subred para la red backend_db
+
+volumes:
+  shared_web:  # Volumen compartido para el contenido web
+  shared_db:  # Volumen compartido para los datos de la base de datos
